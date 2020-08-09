@@ -23,7 +23,7 @@ try:
 except ImportError, e:
     from xml.etree import ElementTree as ET
 
-class Enum(object): 
+class Enum(object):
     def __init__(self, tupleList):
             self.tupleList = tupleList
 
@@ -63,7 +63,7 @@ def extract_panowidthheight(path_to_metadata_xml):
     for child in root:
         if child.tag == 'data_properties':
             pano[child.tag] = child.attrib
-    
+
     return (int(pano['data_properties']['image_width']),int(pano['data_properties']['image_height']))
 
 
@@ -75,14 +75,16 @@ def fetch_pano_ids_from_webserver():
     data = r1.read()
     # print(data)
     jsondata = json.loads(data)
-
+    num = 1
     for value in jsondata["features"]:
-        if value["properties"]["gsv_panorama_id"] not in unique_ids:
-            #Check if the pano_id is an empty string
-            if value["properties"]["gsv_panorama_id"]:
-                unique_ids.append(value["properties"]["gsv_panorama_id"])
-            else:
-                print "Pano ID is an empty string"
+        if num < 10:
+            if value["properties"]["gsv_panorama_id"] not in unique_ids:
+                #Check if the pano_id is an empty string
+                if value["properties"]["gsv_panorama_id"]:
+                    unique_ids.append(value["properties"]["gsv_panorama_id"])
+                else:
+                    print "Pano ID is an empty string"
+        num = num + 1
     return unique_ids
 
 
@@ -112,22 +114,22 @@ def download_panorama_images(storage_path, pano_list):
             fail_count += 1
             logging.error("IMAGEDOWNLOAD: Failed to download pano %s due to error %s", pano_id, str(e))
         total_completed = success_count + fallback_success_count + fail_count + skipped_count
-        print("IMAGEDOWNLOAD: Completed %d of %d (%d success, %d fallback success, %d failed, %d skipped)" 
+        print("IMAGEDOWNLOAD: Completed %d of %d (%d success, %d fallback success, %d failed, %d skipped)"
         % (total_completed, total_panos, success_count, fallback_success_count, fail_count, skipped_count))
 
     logging.debug("IMAGEDOWNLOAD: Final result: Completed %d of %d (%d success, %d fallback success, %d failed, %d skipped)",
-                    total_completed, 
-                    total_panos, 
-                    success_count, 
-                    fallback_success_count, 
-                    fail_count, 
+                    total_completed,
+                    total_panos,
+                    success_count,
+                    fallback_success_count,
+                    fail_count,
                     skipped_count)
     return (success_count, fallback_success_count, fail_count, skipped_count, total_completed)
 
 def download_single_pano(storage_path, pano_id):
     base_url = 'http://maps.google.com/cbk?'
     pano_xml_path = os.path.join(storage_path, pano_id[:2], pano_id + ".xml")
-    
+
     destination_dir = os.path.join(storage_path, pano_id[:2])
     if not os.path.isdir(destination_dir):
         os.makedirs(destination_dir)
@@ -234,10 +236,10 @@ def download_panorama_metadata_xmls(storage_path, pano_list):
             fail_count += 1
             logging.error("METADOWNLOAD: Failed to download metadata for pano %s due to error %s", pano_id, str(e))
         total_completed = fail_count + success_count + skipped_count
-        print("METADOWNLOAD: Completed %d of %d (%d success, %d failed, %d skipped)" % 
+        print("METADOWNLOAD: Completed %d of %d (%d success, %d failed, %d skipped)" %
             (total_completed, total_panos, success_count, fail_count, skipped_count))
 
-    logging.debug("METADOWNLOAD: Final result: Completed %d of %d (%d success, %d failed, %d skipped)", 
+    logging.debug("METADOWNLOAD: Final result: Completed %d of %d (%d success, %d failed, %d skipped)",
             total_completed, total_panos, success_count, fail_count, skipped_count)
     return (success_count, fail_count, skipped_count, total_completed)
 
@@ -335,7 +337,7 @@ def run_scraper_and_log_results():
 
 print "Fetching pano-ids"
 pano_list = fetch_pano_ids_from_webserver()
-pano_list.remove('tutorial')
+
 
 ##### Debug Line - remove for prod ##########
 # pano_list = [pano_list[111], pano_list[112]]
