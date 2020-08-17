@@ -30,9 +30,9 @@ class GSV3DPointImage(object):
 
         ensure_dir(path)
         self.path = path
-        self.pano_id = self.path
-        self.depth_filename = path + 'jQdLwvjVMqab7AAsMcrVQA.depth.txt'
-        self.image_filename = path + 'jQdLwvjVMqab7AAsMcrVQA.jpg'
+        self.pano_id = self.path.split('/')[-1]
+        self.depth_filename = path + 'depth.txt'
+        self.image_filename = path + 'images/pano.jpg'
 
         with open(self.depth_filename, 'rb') as f:
             depth = loadtxt(f)
@@ -108,24 +108,26 @@ class GSV3DPointImage(object):
 
         return
 
-
     def depth_to_png(self, destination, mode='gray'):
         """
         Convert the depth map to grayscale png image
         """
+        print "start depth map"
         destination_dir = '/'.join(destination.split('/')[:-1])
         dir = os.path.dirname(destination_dir)
         dir = dir.replace('~', os.path.expanduser('~'))
         if not os.path.exists(dir):
+            print "not os.path.exists"
             raise ValueError('The directory ' + str(dir) + ' does not exist.')
         destination = destination.replace('~', os.path.expanduser('~'))
         if mode != 'gray':
+            print "not grey passed"
             pass
         else:
             #
             # Grayscale image
             depth = sqrt(self.px ** 2 + self.py ** 2 + self.pz ** 2)
-
+            print "print greyscale time"
             #
             # Morphology operation. Get rid of black peppers.
             from scipy import ndimage
@@ -138,13 +140,13 @@ class GSV3DPointImage(object):
             imarray = asarray(Image.open(self.image_filename).resize((512,256)).convert('L'))
 
             import matplotlib.pyplot as plt
-            from skimage.data import lena
+            from skimage import data, img_as_float
 
             # depth = depth / 100
             depth_image = Image.fromarray(array(depth, dtype=float))
-            # normal_image = normal_image.convert('1')
+            depth_image = depth_image.convert('1')
             depth_image.show()
-            #normal_image.save(destination, 'PNG')
+            depth_image.save(destination, 'PNG')
 
     def get_overlay_value(self, x, y, overlay="depth", verbose=False):
         """
@@ -639,11 +641,16 @@ def script():
         "jQdLwvjVMqab7AAsMcrVQA"
     ]
     for panorama_id in panorama_ids:
-        im_3d = GSV3DPointImage('/mnt/k/sidewalk-panorama-tools/panos/jq/')
-        print 'done'
+        # im_3d = GSV3DPointImage('../data/GSV/%s/' % panorama_id)
+        # im_3d.show_overlay((4096, 2048))
+        print "1"
+        im_3d = GSV3DPointImage('../data/GSV/%s/' % panorama_id)
+        print "2"
+        im_3d.normal_to_png('../data/GSV/my_image.png')
+        print "3"
+        im_3d.depth_to_png('../data/GSV/my_image1.png', mode='gray')
+        print "4"
         im_3d.show_overlay((4096, 2048))
-        print 'done2'
-    return
 
 if __name__ == "__main__":
     print "GSV3DPointImage.py"
