@@ -137,14 +137,14 @@ class GSV3DPointImage(object):
             # Image.fromarray(array(dr, dtype=float)).show()
             # Image.open(self.image_filename).resize((512,256)).convert('L').show()
             #
-            imarray = asarray(Image.open(self.image_filename).resize((512,256)).convert('L'))
+            # imarray = asarray(Image.open(self.image_filename).resize((512,256)).convert('L'))
 
             import matplotlib.pyplot as plt
             from skimage import data, img_as_float
 
-            # depth = depth / 100
+            depth = depth * 8
             depth_image = Image.fromarray(array(depth, dtype=float))
-            depth_image = depth_image.convert('1')
+            depth_image = depth_image.convert('L')
             depth_image.show()
             depth_image.save(destination, 'PNG')
 
@@ -299,7 +299,7 @@ class GSV3DPointImage(object):
 
         depth_3d_x_values = [(point[0], point[1], self.px[point[1], depth_x_ceil_]) for point in points]
         depth_3d_y_values = [(point[0], point[1], self.py[point[1], depth_x_ceil_]) for point in points]
-
+        print [(point[0], point[1], self.px[point[1], depth_x_ceil_]) for point in points]
         #
         # Corner cases
         # if depth_x_ceil == depth_x_floor:
@@ -309,7 +309,7 @@ class GSV3DPointImage(object):
         depth_3d_x_value = bilinear_interpolation(depth_x, depth_y, depth_3d_x_values)
         depth_3d_y_value = bilinear_interpolation(depth_x, depth_y, depth_3d_y_values)
         distance = math.sqrt(depth_3d_x_value ** 2 + depth_3d_y_value ** 2)
-
+        print(depth_3d_x_value, depth_3d_y_value)
         with open(self.path + 'meta.xml', 'rb') as xml:
             tree = ET.parse(xml)
             root = tree.getroot()
@@ -317,9 +317,10 @@ class GSV3DPointImage(object):
             yaw_deg = (yaw_deg + 180) % 360
         heading = (360 * (float(x) / self.gsv_image_width) + yaw_deg) % 360
         latlng = distance_to_latlng(self.path, distance, heading)
-
-        #latlng = point_to_latlng(self.path, (depth_3d_x_value, depth_3d_y_value)) # This function is is utilities
+        print (depth_3d_x_value, depth_3d_y_value)
+        latlng = point_to_latlng(self.path + 'meta.xml', (depth_3d_x_value, depth_3d_y_value)) # This function is is utilities
         if verbose: latlng
+        print latlng
         return latlng
 
     def save_overlay(self, outfile, overlay_type="depth", mask=None):
@@ -650,6 +651,8 @@ def script():
         print "3"
         im_3d.depth_to_png('../data/GSV/my_image1.png', mode='gray')
         print "4"
+        im_3d.point_to_latlng(100, 50, verbose=True)
+        print "5"
         im_3d.show_overlay((4096, 2048))
 
 if __name__ == "__main__":
